@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Admin - HIMPALA UNIPER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            200: '#bcccdc',
+                            300: '#9fb3c8',
+                            400: '#829ab1',
+                            500: '#627d98',
+                            600: '#486581',
+                            700: '#334e68',
+                            800: '#243b53',
+                            900: '#102a43',
+                            950: '#0a192f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased h-screen overflow-hidden flex flex-col">
+
+    <div id="app" class="w-full h-full"></div>
+    <div id="modal-container"></div>
+
+    <script>
+        const icons = {
+            dashboard: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>`,
+            kegiatan: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`,
+            anggota: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`,
+            arsip: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>`,
+            pengaturan: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`,
+            logout: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>`,
+            menu: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>`,
+            bell: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>`,
+            search: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>`,
+            plus: `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`,
+        };
+
+        // State & Database Utama
+        let state = {
+            isLoggedIn: false,
+            activeMenu: 'dashboard',
+            sidebarOpen: false,
+            searchQuery: '',
+            arsipTab: 'masuk',
+            anggota: [
+                { id: 1, name: 'Muhammad Azril', role: 'Ketua Umum', email: 'azril@uniper.ac.id', phone: '0812-3456-7890', status: 'Aktif' },
+                { id: 2, name: 'Monica Natalli Desanda', role: 'Sekretaris Umum', email: 'monic@portal.org', phone: '0819-8765-4321', status: 'Aktif' },
+                { id: 3, name: 'Muhammad Toyib', role: 'Koordinator', email: 'toyib@portal.org', phone: '0856-1234-5678', status: 'Aktif' },
+                { id: 4, name: 'Diana Putri', role: 'Koordinator Divisi IT', email: 'diana@portal.org', phone: '0811-2233-4455', status: 'Cuti' }
+            ],
+            suratMasuk: [
+                { id: 1, noSurat: '001/SM/I/2026', perihal: 'Permohonan Bantuan Dana Kegiatan', tanggal: '10 Jan 2026', kategori: 'Eksternal', pengirim: 'Kementerian Kehutanan' },
+                { id: 2, noSurat: '045/SM/III/2026', perihal: 'Undangan Koordinasi Pecinta Alam Se-Babel', tanggal: '15 Mar 2026', kategori: 'Undangan', pengirim: 'UNIPER Official' }
+            ],
+            suratKeluar: [
+                { id: 1, noSurat: '001/SK/A/I/2026', perihal: 'Surat Keputusan Pengurus Pusat HIMPALA', tanggal: '12 Jan 2026', kategori: 'Keputusan Resmi', tujuan: 'Internal Anggota' },
+                { id: 2, noSurat: '020/SK/VI/2026', perihal: 'Proposal Pengajuan Pendakian Gunung', tanggal: '20 Jun 2026', kategori: 'Proposal', tujuan: 'Badan Pengelola Taman Nasional' }
+            ],
+            kegiatan: [
+                { id: 1, nama: 'Rapat Kerja Tahunan Nasional', jadwal: '15 - 17 Januari 2026', pj: 'Divisi Sekretariat', status: 'Selesai', color: 'green' },
+                { id: 2, nama: 'Pelatihan Kepemimpinan Anggota', jadwal: '12 Maret 2026', pj: 'Bidang SDM', status: 'Selesai', color: 'green' },
+                { id: 3, nama: 'Bakti Sosial & Pengabdian Masyarakat', jadwal: '20 Juli 2026', pj: 'Divisi Sosial', status: 'Akan Datang', color: 'blue' },
+                { id: 4, nama: 'Musyawarah Besar Tahunan', jadwal: '10 Desember 2026', pj: 'Panitia Pengarah', status: 'Akan Datang', color: 'blue' }
+            ]
+        };
+
+        const menuItems = [
+            { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+            { id: 'kegiatan', label: 'Kegiatan Tahunan', icon: 'kegiatan' },
+            { id: 'anggota', label: 'Anggota', icon: 'anggota' },
+            { id: 'arsip', label: 'Arsip Surat', icon: 'arsip' },
+            { id: 'pengaturan', label: 'Pengaturan', icon: 'pengaturan' },
+        ];
+
+        function render() {
+            const app = document.getElementById('app');
+            if (!state.isLoggedIn) {
+                app.innerHTML = renderLogin();
+            } else {
+                app.innerHTML = renderLayout();
+                updateActiveMenuUI();
+            }
+        }
+
+        function renderLogin() {
+            return `
+                <div class="flex min-h-screen bg-slate-50 items-center justify-center p-4 fade-in">
+                    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+                        <div class="bg-navy-900 p-8 text-center">
+                            <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-white">Portal Admin HIMPALA</h2>
+                            <p class="text-navy-200 text-sm mt-1">Universitas Pertiba (UNIPER)</p>
+                        </div>
+                        <div class="p-8">
+                            <form onsubmit="handleLogin(event)" class="space-y-5">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Username / Email</label>
+                                    <input type="text" id="username" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-navy-500 transition-colors bg-slate-50 focus:bg-white" required value="admin">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                                    <input type="password" id="password" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-navy-500 transition-colors bg-slate-50 focus:bg-white" required value="pertiba1982">
+                                </div>
+                                <div class="bg-navy-50 p-3 rounded-lg text-xs text-navy-800">
+                                    <b>Silahkan </b><span class="font-semibold">Masukan </span>Username & <span class="font-semibold">Password</span>
+                                </div>
+                                <button type="submit" class="w-full bg-navy-800 hover:bg-navy-900 text-white font-medium py-2.5 rounded-lg shadow-md transition-all">
+                                    Masuk Dashboard
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLayout() {
+            const menuHtml = menuItems.map(item => `
+                <a href="#" onclick="setMenu('${item.id}'); return false;" 
+                   id="menu-${item.id}"
+                   class="flex items-center px-4 py-3 mx-3 my-1 rounded-lg text-navy-100 hover:bg-navy-800 hover:text-white transition-colors">
+                    ${icons[item.icon]}
+                    <span class="ml-3 font-medium">${item.label}</span>
+                </a>
+            `).join('');
+
+            return `
+                <div class="flex h-screen bg-slate-50 overflow-hidden fade-in">
+                    <aside id="sidebar" class="bg-navy-950 w-72 flex-shrink-0 border-r border-navy-800 flex flex-col transition-all duration-300 ${state.sidebarOpen ? 'translate-x-0 absolute z-50 h-full' : '-translate-x-full absolute z-50 h-full md:relative md:translate-x-0'} shadow-xl md:shadow-none">
+                        <div class="h-16 flex items-center px-6 bg-navy-900 border-b border-navy-800 flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center mr-3 shadow-lg shadow-blue-500/20">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <h1 class="text-white text-base font-bold tracking-wide">HIMPALA UNIPER</h1>
+                            <button onclick="toggleSidebar()" class="ml-auto text-navy-200 hover:text-white md:hidden">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        <nav class="flex-1 overflow-y-auto py-4">
+                            <div class="px-6 mb-2 text-xs font-semibold text-navy-400 uppercase tracking-wider">Navigasi Utama</div>
+                            ${menuHtml}
+                        </nav>
+                        <div class="p-4 border-t border-navy-800">
+                            <button onclick="handleLogout()" class="flex items-center w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
+                                ${icons.logout}
+                                <span class="ml-3 font-medium">Logout</span>
+                            </button>
+                        </div>
+                    </aside>
+
+                    ${state.sidebarOpen ? `<div onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"></div>` : ''}
+
+                    <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+                        <header class="h-16 bg-white shadow-sm border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10 flex-shrink-0">
+                            <div class="flex items-center">
+                                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-navy-900 mr-4 md:hidden">
+                                    ${icons.menu}
+                                </button>
+                                <div class="hidden sm:flex items-center bg-slate-100 rounded-lg px-3 py-1.5 focus-within:ring-2 ring-navy-500 w-64">
+                                    ${icons.search}
+                                    <input type="text" id="global-search" oninput="handleSearch(this.value)" value="${state.searchQuery}" placeholder="Cari data..." class="bg-transparent border-none focus:outline-none ml-2 text-sm w-full text-slate-700">
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="showToast('Sistem sinkron dan aktif')" class="text-slate-400 hover:text-navy-900 relative">
+                                    ${icons.bell}
+                                    <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                                </button>
+                                <div class="h-8 w-px bg-slate-200"></div>
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/100x100/102a43/ffffff?text=MA" alt="Admin" class="w-9 h-9 rounded-full border-2 border-white">
+                                    <div class="ml-3 hidden md:block">
+                                        <p class="text-sm font-semibold text-slate-700 leading-tight">Admin</p>
+                                        <p class="text-xs text-slate-500">Administrator</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                            ${getContentForMenu(state.activeMenu)}
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function getContentForMenu(menu) {
+            let content = '';
+            const titleObj = menuItems.find(m => m.id === menu);
+            const title = titleObj ? titleObj.label : 'Dashboard';
+
+            const headerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 fade-in">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">${title}</h2>
+                        <p class="text-sm text-slate-500 mt-1">Kelola data ${title.toLowerCase()} Himpala Universitas Pertiba.</p>
+                    </div>
+                    ${menu === 'anggota' ? `
+                        <button onclick="openModalTambahAnggota()" class="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-navy-800 text-white rounded-lg hover:bg-navy-900 shadow-sm text-sm font-medium">
+                            ${icons.plus} Tambah Anggota Aktif
+                        </button>
+                    ` : menu === 'arsip' ? `
+                        <div class="mt-4 sm:mt-0 flex space-x-2">
+                            <button onclick="openModalTambahSurat('masuk')" class="flex items-center px-3 py-2 bg-navy-800 text-white rounded-lg hover:bg-navy-900 text-sm font-medium shadow-sm">
+                                ${icons.plus} Surat Masuk
+                            </button>
+                            <button onclick="openModalTambahSurat('keluar')" class="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium shadow-sm">
+                                ${icons.plus} Surat Keluar
+                            </button>
+                        </div>
+                    ` : menu === 'kegiatan' ? `
+                        <button onclick="openModalTambahKegiatan()" class="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-navy-800 text-white rounded-lg hover:bg-navy-900 shadow-sm text-sm font-medium">
+                            ${icons.plus} Tambah Kegiatan
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+
+            switch(menu) {
+                case 'dashboard':
+                    content = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
+                            ${generateStatCard('Total Kegiatan', state.kegiatan.length + ' Agenda', 'Tahun 2026', 'kegiatan', 'bg-blue-100 text-blue-600')}
+                            ${generateStatCard('Anggota Aktif', state.anggota.filter(a=>a.status==='Aktif').length + ' Orang', 'Terverifikasi UNIPER', 'anggota', 'bg-emerald-100 text-emerald-600')}
+                            ${generateStatCard('Surat Masuk', state.suratMasuk.length + ' Berkas', 'Arsip Digital', 'arsip', 'bg-amber-100 text-amber-600')}
+                            ${generateStatCard('Surat Keluar', state.suratKeluar.length + ' Berkas', 'Arsip Digital', 'arsip', 'bg-purple-100 text-purple-600')}
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                            <h3 class="text-lg font-semibold text-slate-800 mb-4">Informasi Akun Admin</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
+                                <p><b>User:</b> Admin</p>
+                                <p><b>Kampus:</b> Universitas Pertiba</p>
+                                <p><b>Wilayah:</b> Bangka Belitung</p>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                
+                case 'kegiatan':
+                    const filteredKegiatan = state.kegiatan.filter(k => k.nama.toLowerCase().includes(state.searchQuery.toLowerCase()) || k.pj.toLowerCase().includes(state.searchQuery.toLowerCase()));
+                    content = `
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden fade-in">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                                            <th class="py-4 px-6 font-medium">Nama Kegiatan</th>
+                                            <th class="py-4 px-6 font-medium">Jadwal Pelaksanaan</th>
+                                            <th class="py-4 px-6 font-medium">Penanggung Jawab</th>
+                                            <th class="py-4 px-6 font-medium">Status</th>
+                                            <th class="py-4 px-6 font-medium text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-slate-100">
+                                        ${filteredKegiatan.length > 0 ? filteredKegiatan.map(k => `
+                                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                                <td class="py-4 px-6 font-medium text-slate-800">${k.nama}</td>
+                                                <td class="py-4 px-6 text-slate-600">${k.jadwal}</td>
+                                                <td class="py-4 px-6 text-slate-600">${k.pj}</td>
+                                                <td class="py-4 px-6"><span class="px-2.5 py-1 text-xs font-medium bg-${k.color}-100 text-${k.color}-700 rounded-full">${k.status}</span></td>
+                                                <td class="py-4 px-6 text-right space-x-2">
+                                                    <button onclick="editKegiatan(${k.id})" class="px-3 py-1 bg-navy-50 text-navy-700 hover:bg-navy-100 rounded text-xs font-medium">Edit</button>
+                                                    <button onclick="hapusKegiatan(${k.id})" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-medium">Hapus</button>
+                                                </td>
+                                            </tr>
+                                        `).join('') : `<tr><td colspan="5" class="py-6 text-center text-slate-400">Tidak ada agenda kegiatan ditemukan.</td></tr>`}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'anggota':
+                    const filteredAnggota = state.anggota.filter(a => a.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || a.role.toLowerCase().includes(state.searchQuery.toLowerCase()));
+                    content = `
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden fade-in">
+                            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <span class="text-sm font-medium text-slate-600">Daftar Anggota Aktif HIMPALA UNIPER</span>
+                                <span class="text-sm text-slate-500 font-semibold">Total: ${filteredAnggota.length} Anggota</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                                            <th class="py-4 px-6 font-medium">Nama Anggota</th>
+                                            <th class="py-4 px-6 font-medium">Jabatan / Peran</th>
+                                            <th class="py-4 px-6 font-medium">Kontak Resmi</th>
+                                            <th class="py-4 px-6 font-medium">Status</th>
+                                            <th class="py-4 px-6 font-medium text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-slate-100">
+                                        ${filteredAnggota.length > 0 ? filteredAnggota.map(m => {
+                                            let initials = m.name.split(' ').map(n=>n[0]).join('').substring(0,2);
+                                            return `
+                                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                                    <td class="py-4 px-6 flex items-center">
+                                                        <div class="w-10 h-10 rounded-full bg-navy-100 text-navy-800 flex items-center justify-center font-bold text-sm mr-3">
+                                                            ${initials}
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-medium text-slate-800">${m.name}</p>
+                                                            <p class="text-xs text-slate-500 mt-0.5">UNIPER - 2026</p>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-4 px-6">
+                                                        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">${m.role}</span>
+                                                    </td>
+                                                    <td class="py-4 px-6">
+                                                        <p class="text-sm text-slate-700">${m.email}</p>
+                                                        <p class="text-xs text-slate-500">${m.phone}</p>
+                                                    </td>
+                                                    <td class="py-4 px-6">
+                                                        <span class="px-2.5 py-1 text-xs font-medium ${m.status === 'Aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} rounded-full">${m.status}</span>
+                                                    </td>
+                                                    <td class="py-4 px-6 text-right space-x-2">
+                                                        <button onclick="editAnggota(${m.id})" class="px-3 py-1 bg-navy-50 text-navy-700 hover:bg-navy-100 rounded text-xs font-medium">Edit</button>
+                                                        <button onclick="hapusAnggota(${m.id})" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-medium">Hapus</button>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('') : `<tr><td colspan="5" class="py-6 text-center text-slate-400">Tidak ada anggota ditemukan.</td></tr>`}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                
+                case 'arsip':
+                    const activeSuratList = state.arsipTab === 'masuk' ? state.suratMasuk : state.suratKeluar;
+                    content = `
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden fade-in">
+                            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                <div class="flex space-x-2">
+                                    <button onclick="setArsipTab('masuk')" class="px-4 py-2 ${state.arsipTab === 'masuk' ? 'bg-navy-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} rounded-lg text-sm font-medium transition-colors">Surat Masuk (${state.suratMasuk.length})</button>
+                                    <button onclick="setArsipTab('keluar')" class="px-4 py-2 ${state.arsipTab === 'keluar' ? 'bg-navy-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} rounded-lg text-sm font-medium transition-colors">Surat Keluar (${state.suratKeluar.length})</button>
+                                </div>
+                                <span class="text-sm text-slate-500">Kelola dan unduh arsip persuratan</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                                            <th class="py-4 px-6 font-medium">Nomor Surat</th>
+                                            <th class="py-4 px-6 font-medium">Perihal</th>
+                                            <th class="py-4 px-6 font-medium">${state.arsipTab === 'masuk' ? 'Pengirim' : 'Tujuan'}</th>
+                                            <th class="py-4 px-6 font-medium">Tanggal</th>
+                                            <th class="py-4 px-6 font-medium text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-slate-100">
+                                        ${activeSuratList.length > 0 ? activeSuratList.map(s => `
+                                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                                <td class="py-4 px-6 font-medium text-navy-900">${s.noSurat}</td>
+                                                <td class="py-4 px-6 text-slate-800">${s.perihal}</td>
+                                                <td class="py-4 px-6 text-slate-600">${s.pengirim || s.tujuan}</td>
+                                                <td class="py-4 px-6 text-slate-600">${s.tanggal}</td>
+                                                <td class="py-4 px-6 text-right space-x-2">
+                                                    <button onclick="showToast('Mengunduh berkas ${s.noSurat}')" class="px-3 py-1 bg-navy-100 text-navy-800 rounded text-xs font-medium hover:bg-navy-200">Unduh PDF</button>
+                                                    <button onclick="hapusSurat(${s.id}, '${state.arsipTab}')" class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs font-medium">Hapus</button>
+                                                </td>
+                                            </tr>
+                                        `).join('') : `<tr><td colspan="5" class="py-6 text-center text-slate-400">Belum ada arsip surat ${state.arsipTab}.</td></tr>`}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                
+                case 'pengaturan':
+                    content = `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 fade-in">
+                            <div class="md:col-span-1">
+                                <h3 class="text-lg font-bold text-slate-800">Pengaturan Sistem</h3>
+                                <p class="text-sm text-slate-500 mt-2">Atur identitas portal admin, keamanan, dan preferensi akun admin.</p>
+                            </div>
+                            <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                <form class="space-y-6" onsubmit="event.preventDefault(); showToast('Pengaturan sistem berhasil disimpan!');">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Nama Organisasi / Portal</label>
+                                        <input type="text" class="w-full px-4 py-2 rounded-lg border border-slate-300 text-slate-700" value="HIMPALA Universitas Pertiba (UNIPER)">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Email Administrator</label>
+                                        <input type="email" class="w-full px-4 py-2 rounded-lg border border-slate-300 text-slate-700" value="admin@uniper.ac.id">
+                                    </div>
+                                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                        <span class="text-xs text-slate-400">Versi Sistem v2.6.0 (UNIPER Edition)</span>
+                                        <button type="submit" class="px-6 py-2 bg-navy-800 text-white rounded-lg hover:bg-navy-900 font-medium shadow-sm">Simpan Perubahan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            return headerHTML + content;
+        }
+
+        // --- Logika & Modal Anggota ---
+        function openModalTambahAnggota(editData = null) {
+            const isEdit = editData !== null;
+            const container = document.getElementById('modal-container');
+            container.innerHTML = `
+                <div class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm fade-in">
+                    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+                        <div class="bg-navy-900 px-6 py-4 flex justify-between items-center text-white">
+                            <h3 class="font-bold text-lg">${isEdit ? 'Edit Data Anggota' : 'Tambah Anggota Aktif Baru'}</h3>
+                            <button onclick="closeModal()" class="text-slate-300 hover:text-white text-xl">&times;</button>
+                        </div>
+                        <form onsubmit="handleSimpanAnggota(event, ${isEdit ? editData.id : 'null'})" class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap & Gelar</label>
+                                <input type="text" id="m-name" required value="${isEdit ? editData.name : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: Ahmad Fauzi, S.Kom">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Jabatan / Peran</label>
+                                <input type="text" id="m-role" required value="${isEdit ? editData.role : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: Anggota Aktif">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                                    <input type="email" id="m-email" required value="${isEdit ? editData.email : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="email@domain.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">No. WhatsApp / HP</label>
+                                    <input type="text" id="m-phone" required value="${isEdit ? editData.phone : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="0812xxxxxxxx">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Status Keanggotaan</label>
+                                <select id="m-status" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                                    <option value="Aktif" ${isEdit && editData.status === 'Aktif' ? 'selected' : ''}>Aktif</option>
+                                    <option value="Cuti" ${isEdit && editData.status === 'Cuti' ? 'selected' : ''}>Cuti</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-end space-x-2 pt-4 border-t">
+                                <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600">Batal</button>
+                                <button type="submit" class="px-5 py-2 bg-navy-800 text-white rounded-lg text-sm font-medium hover:bg-navy-900">Simpan Anggota</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleSimpanAnggota(e, id) {
+            e.preventDefault();
+            const name = document.getElementById('m-name').value;
+            const role = document.getElementById('m-role').value;
+            const email = document.getElementById('m-email').value;
+            const phone = document.getElementById('m-phone').value;
+            const status = document.getElementById('m-status').value;
+
+            if (id !== null) {
+                const index = state.anggota.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    state.anggota[index] = { id, name, role, email, phone, status };
+                    showToast('Data anggota berhasil diperbarui!');
+                }
+            } else {
+                const newId = state.anggota.length > 0 ? Math.max(...state.anggota.map(a => a.id)) + 1 : 1;
+                state.anggota.push({ id: newId, name, role, email, phone, status });
+                showToast('Anggota aktif baru berhasil ditambahkan!');
+            }
+            closeModal();
+            render();
+        }
+
+        function editAnggota(id) {
+            const member = state.anggota.find(a => a.id === id);
+            if (member) openModalTambahAnggota(member);
+        }
+
+        function hapusAnggota(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus anggota ini?')) {
+                state.anggota = state.anggota.filter(a => a.id !== id);
+                showToast('Anggota berhasil dihapus.');
+                render();
+            }
+        }
+
+        // --- Logika & Modal Kegiatan ---
+        function openModalTambahKegiatan(editData = null) {
+            const isEdit = editData !== null;
+            const container = document.getElementById('modal-container');
+            container.innerHTML = `
+                <div class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm fade-in">
+                    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+                        <div class="bg-navy-900 px-6 py-4 flex justify-between items-center text-white">
+                            <h3 class="font-bold text-lg">${isEdit ? 'Edit Agenda Kegiatan' : 'Tambah Agenda Kegiatan Tahunan'}</h3>
+                            <button onclick="closeModal()" class="text-slate-300 hover:text-white text-xl">&times;</button>
+                        </div>
+                        <form onsubmit="handleSimpanKegiatan(event, ${isEdit ? editData.id : 'null'})" class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Kegiatan</label>
+                                <input type="text" id="k-nama" required value="${isEdit ? editData.nama : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: Pengenalan Lingkungan Kampus">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Jadwal Pelaksanaan</label>
+                                <input type="text" id="k-jadwal" required value="${isEdit ? editData.jadwal : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: 12 Agustus 2026">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Penanggung Jawab / Divisi</label>
+                                <input type="text" id="k-pj" required value="${isEdit ? editData.pj : ''}" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: Divisi Gunung Hutan">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Status Kegiatan</label>
+                                <select id="k-status" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                                    <option value="Akan Datang" ${isEdit && editData.status === 'Akan Datang' ? 'selected' : ''}>Akan Datang</option>
+                                    <option value="Selesai" ${isEdit && editData.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-end space-x-2 pt-4 border-t">
+                                <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600">Batal</button>
+                                <button type="submit" class="px-5 py-2 bg-navy-800 text-white rounded-lg text-sm font-medium hover:bg-navy-900">Simpan Kegiatan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleSimpanKegiatan(e, id) {
+            e.preventDefault();
+            const nama = document.getElementById('k-nama').value;
+            const jadwal = document.getElementById('k-jadwal').value;
+            const pj = document.getElementById('k-pj').value;
+            const status = document.getElementById('k-status').value;
+            const color = status === 'Selesai' ? 'green' : 'blue';
+
+            if (id !== null) {
+                const index = state.kegiatan.findIndex(k => k.id === id);
+                if (index !== -1) {
+                    state.kegiatan[index] = { id, nama, jadwal, pj, status, color };
+                    showToast('Agenda kegiatan berhasil diperbarui!');
+                }
+            } else {
+                const newId = state.kegiatan.length > 0 ? Math.max(...state.kegiatan.map(k => k.id)) + 1 : 1;
+                state.kegiatan.push({ id: newId, nama, jadwal, pj, status, color });
+                showToast('Agenda kegiatan baru berhasil ditambahkan!');
+            }
+            closeModal();
+            render();
+        }
+
+        function editKegiatan(id) {
+            const kegiatan = state.kegiatan.find(k => k.id === id);
+            if (kegiatan) openModalTambahKegiatan(kegiatan);
+        }
+
+        function hapusKegiatan(id) {
+            if (confirm('Hapus agenda kegiatan ini?')) {
+                state.kegiatan = state.kegiatan.filter(k => k.id !== id);
+                showToast('Kegiatan berhasil dihapus.');
+                render();
+            }
+        }
+
+        // --- Logika & Modal Surat Masuk & Keluar ---
+        function openModalTambahSurat(jenis) {
+            const container = document.getElementById('modal-container');
+            const isMasuk = jenis === 'masuk';
+            container.innerHTML = `
+                <div class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm fade-in">
+                    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+                        <div class="bg-navy-900 px-6 py-4 flex justify-between items-center text-white">
+                            <h3 class="font-bold text-lg">Tambah Arsip Surat ${isMasuk ? 'Masuk' : 'Keluar'}</h3>
+                            <button onclick="closeModal()" class="text-slate-300 hover:text-white text-xl">&times;</button>
+                        </div>
+                        <form onsubmit="handleSimpanSurat(event, '${jenis}')" class="p-6 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Nomor Surat</label>
+                                <input type="text" id="s-no" required class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: 012/HIMPALA/IV/2026">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Perihal / Keterangan</label>
+                                <input type="text" id="s-perihal" required class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: Permohonan Izin Kegiatan Pendakian">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">${isMasuk ? 'Pengirim' : 'Tujuan Surat'}</label>
+                                    <input type="text" id="s-pihak" required class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="${isMasuk ? 'Instansi Pengirim' : 'Penerima Surat'}">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Surat</label>
+                                    <input type="text" id="s-tgl" required class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: 29 Sep 2026">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Kategori Surat</label>
+                                <input type="text" id="s-kat" required class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="cth: Undangan / Proposal / Keputusan">
+                            </div>
+                            <div class="flex justify-end space-x-2 pt-4 border-t">
+                                <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600">Batal</button>
+                                <button type="submit" class="px-5 py-2 bg-navy-800 text-white rounded-lg text-sm font-medium hover:bg-navy-900">Simpan Surat</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleSimpanSurat(e, jenis) {
+            e.preventDefault();
+            const noSurat = document.getElementById('s-no').value;
+            const perihal = document.getElementById('s-perihal').value;
+            const pihak = document.getElementById('s-pihak').value;
+            const tanggal = document.getElementById('s-tgl').value;
+            const kategori = document.getElementById('s-kat').value;
+
+            if (jenis === 'masuk') {
+                const newId = state.suratMasuk.length > 0 ? Math.max(...state.suratMasuk.map(s => s.id)) + 1 : 1;
+                state.suratMasuk.push({ id: newId, noSurat, perihal, pengirim: pihak, tanggal, kategori });
+            } else {
+                const newId = state.suratKeluar.length > 0 ? Math.max(...state.suratKeluar.map(s => s.id)) + 1 : 1;
+                state.suratKeluar.push({ id: newId, noSurat, perihal, tujuan: pihak, tanggal, kategori });
+            }
+
+            closeModal();
+            showToast(`Arsip surat ${jenis} berhasil disimpan!`);
+            render();
+        }
+
+        function hapusSurat(id, jenis) {
+            if (confirm('Hapus arsip surat ini?')) {
+                if (jenis === 'masuk') {
+                    state.suratMasuk = state.suratMasuk.filter(s => s.id !== id);
+                } else {
+                    state.suratKeluar = state.suratKeluar.filter(s => s.id !== id);
+                }
+                showToast('Surat berhasil dihapus dari arsip.');
+                render();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').innerHTML = '';
+        }
+
+        function handleSearch(query) {
+            state.searchQuery = query;
+            const contentArea = document.getElementById('main-content');
+            if (contentArea) {
+                contentArea.innerHTML = getContentForMenu(state.activeMenu);
+            }
+        }
+
+        function setArsipTab(tab) {
+            state.arsipTab = tab;
+            render();
+        }
+
+        function generateStatCard(title, value, subtitle, icon, iconColorClass) {
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">${title}</p>
+                        <h4 class="text-2xl font-bold text-slate-800">${value}</h4>
+                        <p class="text-xs text-slate-400 mt-1">${subtitle}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full ${iconColorClass} flex items-center justify-center">
+                        ${icons[icon]}
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if (user === 'admin' && pass === 'pertiba1982') {
+                state.isLoggedIn = true;
+                render();
+                showToast('Login berhasil! Selamat datang di Portal Admin HIMPALA UNIPER.');
+            } else {
+                showToast('Gagal! Gunakan username admin dan sandi pertiba1982');
+            }
+        }
+
+        function handleLogout() {
+            state.isLoggedIn = false;
+            state.activeMenu = 'dashboard';
+            state.sidebarOpen = false;
+            render();
+            showToast('Anda telah berhasil keluar.');
+        }
+
+        function setMenu(menuId) {
+            state.activeMenu = menuId;
+            state.searchQuery = '';
+            if (window.innerWidth < 768) state.sidebarOpen = false;
+            render();
+        }
+
+        function toggleSidebar() {
+            state.sidebarOpen = !state.sidebarOpen;
+            render();
+        }
+
+        function updateActiveMenuUI() {
+            menuItems.forEach(item => {
+                const el = document.getElementById(`menu-${item.id}`);
+                if(el) {
+                    el.classList.remove('bg-navy-800', 'text-white', 'border-l-4', 'border-blue-500');
+                    el.classList.add('text-navy-100');
+                }
+            });
+            const activeEl = document.getElementById(`menu-${state.activeMenu}`);
+            if(activeEl) {
+                activeEl.classList.remove('text-navy-100');
+                activeEl.classList.add('bg-navy-800', 'text-white', 'border-l-4', 'border-blue-500');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-navy-900 text-white px-6 py-3 rounded-lg shadow-xl font-medium text-sm fade-in z-50 border border-navy-700';
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+    </script>
+</body>
+</html>
